@@ -41,7 +41,7 @@ jobs:
         run: |
           docker run -d --name instrument-relax --network host \
             -e DATABASE_URL="$DATABASE_URL" -e APP_USER="$APP_USER" \
-            -e APP_PASSWORD="$APP_PASSWORD" -e PORT=8080 \
+            -e APP_PASSWORD="$APP_PASSWORD" -e APP_AUTH=1 -e PORT=8080 \
             instrument-relax:test
           for i in $(seq 1 40); do
             if curl --fail --silent http://127.0.0.1:8080/healthz; then break; fi

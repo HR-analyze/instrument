@@ -14,7 +14,7 @@ from pydantic import BaseModel, Field
 from starlette.concurrency import run_in_threadpool
 
 from . import db, export, mail_import, service
-from .deploy_config import validate_deployment
+from .deploy_config import auth_enabled, validate_deployment
 from .parser import parse_xlsx, source_from_filename
 
 STATIC = Path(__file__).parent / "static"
@@ -39,8 +39,9 @@ app = FastAPI(title="Instrument", lifespan=lifespan)
 
 @app.middleware("http")
 async def basic_auth(request: Request, call_next):
-    """HTTP Basic Auth на всё, кроме /healthz. Выключена, если APP_PASSWORD пуст."""
-    password = os.environ.get("APP_PASSWORD", "")
+    """HTTP Basic Auth на всё, кроме /healthz. Выключена, если APP_PASSWORD пуст;
+    на RelaxDev — пока не задано APP_AUTH=1 (см. deploy_config.auth_enabled)."""
+    password = os.environ.get("APP_PASSWORD", "") if auth_enabled() else ""
     if password and request.url.path != "/healthz":
         user = os.environ.get("APP_USER", "admin")
         ok = False

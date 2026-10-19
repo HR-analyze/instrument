@@ -67,6 +67,21 @@ def upload(c, source, content, name="file.xlsx"):
     return res
 
 
+def test_relaxdev_is_open_without_app_auth(client, monkeypatch):
+    """На RelaxDev без APP_AUTH=1 вход свободный, с APP_AUTH=1 — по паролю."""
+    monkeypatch.setenv("RELAXDEV_DEPLOY", "1")
+    monkeypatch.delenv("APP_AUTH", raising=False)
+    client.auth = None
+    assert client.get("/").status_code == 200
+    assert client.get("/api/meta").status_code == 200
+    assert client.get("/healthz").status_code == 200
+    monkeypatch.setenv("APP_AUTH", "1")
+    assert client.get("/api/meta").status_code == 401
+    assert client.get("/healthz").status_code == 200
+    client.auth = ("admin", "pw")
+    assert client.get("/api/meta").status_code == 200
+
+
 def test_auth_required(client):
     client.auth = None
     assert client.get("/api/meta").status_code == 401
